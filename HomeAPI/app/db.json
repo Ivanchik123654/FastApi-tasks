@@ -1,14 +1,5 @@
 [
   {
-    "id": 2,
-    "title": "Прочитать главу книги",
-    "description": "Прочитать 10 страниц",
-    "done": true,
-    "subject": "literature",
-    "priority": 2,
-    "category": "school"
-  },
-  {
     "id": 3,
     "title": "Повторить английские слова",
     "description": "Выучить 15 слов по теме Food",
@@ -19,12 +10,12 @@
   },
   {
     "id": 4,
-    "title": "Собрать рюкзак",
-    "description": "Проверить тетради и форму",
+    "title": "string",
+    "description": "string",
     "done": true,
-    "subject": "home",
+    "subject": "string",
     "priority": 1,
-    "category": "home"
+    "category": "school"
   },
   {
     "id": 5,
