@@ -1,7 +1,9 @@
 from typing import Dict
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 
+from HomeAPI.app.dependencies import verify_token
 from HomeAPI.app.routers.tasks import router as tasks_router
+from HomeAPI.app.service import tasks
 
 app = FastAPI(
     title='HomeAPI',
@@ -35,6 +37,23 @@ def get_student(name, age, target) -> Dict[str, str]:
         'name': name,
         'age': age,
         'target': target,
+    }
+
+@app.get(
+            path="/summary",
+            summary='Общее количество задач и сколько из них выполнено',
+            tags=['stats'],
+            dependencies=[Depends(verify_token)],
+            )
+def get_tasks_summary() -> Dict[str, int]:
+    # Считаем общее количество задач и сколько из них выполнено.
+    total = len(tasks)
+    completed = len([task for task in tasks if task["done"]])
+    not_completed = total - completed
+    return {
+        "total": total,
+        "completed": completed,
+        "not_completed": not_completed,
     }
 
 app.include_router(router=tasks_router)

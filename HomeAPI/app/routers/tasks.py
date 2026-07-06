@@ -37,23 +37,6 @@ def get_tasks(
     )
 
 @router.get(
-            path="/summary",
-            summary='Общее количество задач и сколько из них выполнено',
-            tags=['tasks'],
-            dependencies=[Depends(verify_token)],
-            )
-def get_tasks_summary() -> Dict[str, int]:
-    # Считаем общее количество задач и сколько из них выполнено.
-    total = len(tasks)
-    completed = len([task for task in tasks if task["done"]])
-    not_completed = total - completed
-    return {
-        "total": total,
-        "completed": completed,
-        "not_completed": not_completed,
-    }
-
-@router.get(
             path="/count-by-subject",
             status_code=status.HTTP_200_OK,
             summary='Количество задач по предмету',
