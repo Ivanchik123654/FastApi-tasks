@@ -1,18 +1,19 @@
+import asyncio
+from asyncio import gather
 from typing import List, Dict, Any
 
 from fastapi import APIRouter, HTTPException
 from fastapi.params import Depends
 from starlette import status
 
-from HomeAPI.app.schema import TaskRead, TaskCreate, TaskUpdate, DescUpdate, TitleUpdate, PriorityUpdate, SubjectUpdate, \
-    CategoryUpdate
+from HomeAPI.app.schema import TaskRead, TaskCreate, TaskUpdate, DescUpdate, TitleUpdate, PriorityUpdate, SubjectUpdate, CategoryUpdate
 from HomeAPI.app.const import Category
 from HomeAPI.app.service import get_tasks_by_query, tasks, find_task, task_update_by_schema, patch_dump
 from HomeAPI.app.service import post_task, delete_task_from_json
 from HomeAPI.app.dependencies import verify_token
+from HomeAPI.app.external import get_hint, get_task_difficult, count_completed, count_high_priority, sort_tasks, get_motivation_by_subject
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
-
 
 @router.get(path="",
             summary='Получить задачи',
@@ -49,6 +50,17 @@ def get_number_tasks(subject: str) -> Dict[str, int]:
         return {"number of tasks": num_of_tasks}
     # raise HTTPException(status_code=404, detail='Subject not found')
 
+@router.get(
+    path='/status',
+    status_code=status.HTTP_200_OK,
+    summary='Получить отчет по задачам',
+    tags=['status'],
+    dependencies=[Depends(verify_token)],
+    )
+async def report() -> Dict[str, int]:
+    completed = asyncio.create_task(count_completed(tasks=tasks))
+    high_pr = asyncio.create_task(count_high_priority(tasks=tasks))
+    return {'completed': await completed, 'high_priority': await high_pr}
 
 @router.get(
             path="/by-subject/{subject}",
@@ -120,7 +132,6 @@ def update_done(task_id: int):
     task.update()
     patch_dump(task=task)
 
-
 @router.patch(path="/{task_id}/description",
               status_code=status.HTTP_204_NO_CONTENT,
               summary='Изменить описание задачи',
@@ -169,3 +180,64 @@ def update_subject(task_id: int, task_update: SubjectUpdate):
               )
 def update_category(task_id: int, task_update: CategoryUpdate):
     task_update_by_schema(task_id=task_id, task_update=task_update)
+
+@router.get(
+    path='/{task_id}/hint',
+    status_code=status.HTTP_200_OK,
+    summary='Получить подсказку по предмету',
+    tags=['tasks'],
+    dependencies=[Depends(verify_token)],
+)
+async def get_task_hint(task_id: int ) -> Dict[str, Any]:
+    task = find_task(task_id)
+    hint, difficult = await asyncio.gather(
+        get_hint(subject=task['subject']),
+        get_task_difficult(priority=task['priority']),
+    )
+    return {
+        'task_id': task_id,
+        'title': task['title'],
+        'subject': task['subject'],
+        'difficult': difficult,
+        'hint': hint
+    }
+
+@router.get(
+    path='/{task_id}/motivation/1',
+    status_code=status.HTTP_200_OK,
+    summary='Получить подсказку по предмету',
+    tags=['tasks'],
+    dependencies=[Depends(verify_token)],
+)
+async def get_motivation(task_id: int) -> Dict[str, Any]:
+    motivation, subject_list = await asyncio.gather(
+        get_motivation_by_subject(find_task(task_id=task_id)),
+        sort_tasks(tasks=tasks, subject=find_task(task_id=task_id)['subject'])
+    )
+    return {'motivation': motivation, 'sorted_subject_list_by_priority': subject_list}
+
+
+@router.get(
+    path='/{task_id}/motivation/2',
+    status_code=status.HTTP_200_OK,
+    summary='Получить подсказку по предмету',
+    tags=['tasks'],
+    dependencies=[Depends(verify_token)],
+)
+async def get_motivation(task_id: int) -> Dict[str, Any]:
+    motivation,  = await get_motivation_by_subject(find_task(task_id=task_id))
+    subject_list = await sort_tasks(tasks=tasks, subject=find_task(task_id=task_id)['subject'])
+    return {'motivation': motivation, 'sorted_subject_list_by_priority': subject_list}
+
+
+@router.get(
+    path='/{task_id}/motivation/3',
+    status_code=status.HTTP_200_OK,
+    summary='Получить подсказку по предмету',
+    tags=['tasks'],
+    dependencies=[Depends(verify_token)],
+)
+async def get_motivation(task_id: int) -> Dict[str, Any]:
+    motivation = asyncio.create_task(get_motivation_by_subject(find_task(task_id=task_id)))
+    subject_list = asyncio.create_task(sort_tasks(tasks=tasks)['subject'])
+    return {'motivation': await motivation, 'sorted_subject_list_by_priority': await subject_list}
