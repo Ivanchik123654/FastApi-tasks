@@ -3,14 +3,14 @@
     "id": 3,
     "title": "Повторить английские слова",
     "description": "Выучить 15 слов по теме Food",
-    "done": false,
+    "done": "False",
     "subject": "english",
     "priority": 3,
     "category": "school"
   },
   {
     "id": 4,
-    "title": "string",
+    "title": "str",
     "description": "string",
     "done": true,
     "subject": "string",
@@ -21,7 +21,7 @@
     "id": 5,
     "title": "Решить уравнения",
     "description": "Решить 10 линейных уравнений",
-    "done": false,
+    "done": "False",
     "subject": "math",
     "priority": 3,
     "category": "school"
@@ -29,8 +29,8 @@
   {
     "id": 6,
     "title": "Написать сочинение по литературе",
-    "description": "Тема: 'Образ Евгения Онегина'",
-    "done": false,
+    "description": "Тема: Образ Евгения Онегина",
+    "done": "False",
     "subject": "literature",
     "priority": 4,
     "category": "school"
@@ -39,7 +39,7 @@
     "id": 7,
     "title": "Сделать упражнения по грамматике",
     "description": "Упражнения на времена Present Perfect и Past Simple",
-    "done": true,
+    "done": "True",
     "subject": "english",
     "priority": 2,
     "category": "school"
@@ -48,7 +48,7 @@
     "id": 8,
     "title": "Убраться в комнате",
     "description": "Пылесосить, вытереть пыль, сложить вещи",
-    "done": false,
+    "done": "False",
     "subject": "home",
     "priority": 1,
     "category": "home"
@@ -57,7 +57,7 @@
     "id": 9,
     "title": "Подготовиться к контрольной по математике",
     "description": "Повторить формулы и решить 2 варианта",
-    "done": true,
+    "done": "True",
     "subject": "math",
     "priority": 5,
     "category": "school"
@@ -65,8 +65,8 @@
   {
     "id": 10,
     "title": "Выучить стихотворение Пушкина",
-    "description": "Выучить наизусть 'Я вас любил'",
-    "done": true,
+    "description": "Выучить наизусть Я вас любил",
+    "done": "True",
     "subject": "literature",
     "priority": 3,
     "category": "school"
@@ -74,8 +74,8 @@
   {
     "id": 11,
     "title": "Посмотреть фильм на английском",
-    "description": "Посмотреть серию 'Friends' с субтитрами",
-    "done": false,
+    "description": "Посмотреть серию Friends с субтитрами",
+    "done": "False",
     "subject": "english",
     "priority": 2,
     "category": "school"
@@ -84,7 +84,7 @@
     "id": 12,
     "title": "Приготовить обед",
     "description": "Приготовить суп и второе",
-    "done": false,
+    "done": "False",
     "subject": "home",
     "priority": 2,
     "category": "home"
