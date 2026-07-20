@@ -2,15 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="70465cae-75e4-4157-af3f-62029a4b5cf6" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/HomeAPI/app/test.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/FastApi-tasks.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/FastApi-tasks.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/HomeAPI/app/external.py" beforeDir="false" afterPath="$PROJECT_DIR$/HomeAPI/app/external.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/HomeAPI/app/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/HomeAPI/app/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/HomeAPI/app/routers/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/HomeAPI/app/routers/admin.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/HomeAPI/app/routers/tasks.py" beforeDir="false" afterPath="$PROJECT_DIR$/HomeAPI/app/routers/tasks.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/HomeAPI/app/service.py" beforeDir="false" afterPath="$PROJECT_DIR$/HomeAPI/app/service.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/HomeAPI/app/task_db.db" beforeDir="false" afterPath="$PROJECT_DIR$/HomeAPI/app/task_db.db" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -39,25 +33,25 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "Python.From_json_to_sql.executor": "Run",
-    "Python.const.executor": "Run",
-    "Python.dfghj.executor": "Run",
-    "Python.kdfkhgskdfg.executor": "Run",
-    "Python.service.executor": "Run",
-    "Python.tasks.executor": "Run",
-    "Python.test.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "for__PR",
-    "last_opened_file_path": "/home/jopa/PycharmProjects/FastApi-tasks/HomeAPI/app",
-    "settings.editor.selected.configurable": "preferences.lookFeel"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python.From_json_to_sql.executor&quot;: &quot;Run&quot;,
+    &quot;Python.const.executor&quot;: &quot;Run&quot;,
+    &quot;Python.dfghj.executor&quot;: &quot;Run&quot;,
+    &quot;Python.kdfkhgskdfg.executor&quot;: &quot;Run&quot;,
+    &quot;Python.service.executor&quot;: &quot;Run&quot;,
+    &quot;Python.tasks.executor&quot;: &quot;Run&quot;,
+    &quot;Python.test.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;for__PR&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/jopa/PycharmProjects/FastApi-tasks/HomeAPI/app&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.lookFeel&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/HomeAPI/app" />

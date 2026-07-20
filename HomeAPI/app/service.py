@@ -1,15 +1,37 @@
 from typing import Dict, Any, List
 from fastapi import HTTPException
 from pydantic import BaseModel
+from sqlalchemy import Column, Integer, String
 from starlette import status
-
 from HomeAPI.app.const import Category
 from HomeAPI.app.schema import TaskCreate
-
 from pathlib import Path
 import aiosqlite
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy.orm import declarative_base
 
 DB_PATH = Path(__file__).parent / 'task_db.db'
+SQLALCHEMY_DB_URL = f"sqlite+aiosqlite:///{DB_PATH}"
+
+# Base = declarative_base()
+# # Создаем асинхронный движок
+# engine = create_async_engine(SQLALCHEMY_DB_URL)
+#
+# # Создаем фабрику асинхронных сессий
+# AsyncSessionLocal = async_sessionmaker(
+#     engine,
+#     expire_on_commit=False  # Важно для работы с FastAPI
+# )
+
+# class Task(Base):
+#     __tablename__ = 'tasks'
+#     id = Column(Integer, primary_key=True)
+#     title = Column(String)
+#     description = Column(String)
+#     done = Column(String)
+#     subject = Column(String)
+#     priority = Column(Integer)
+#     category = Column(String)
 
 def convert_to_dict(query: List) -> List[Dict[str, Any]]:
     result = []
@@ -33,6 +55,8 @@ async def find_task(task_id: int) -> Dict[str, Any]:
     result = convert_to_dict(await cursor.fetchall())
     await db.commit()
     await db.close()
+    # session = AsyncSessionLocal()
+    # result = get_all_tasks(session.query(Task).filter_by(id=task_id).all())
     if result != []:
         return result[0]
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail='Не найдена задача')

@@ -1,5 +1,4 @@
 import asyncio
-from asyncio import gather
 from typing import List, Dict, Any
 
 from fastapi import APIRouter, HTTPException
@@ -184,6 +183,7 @@ async def get_task_hint(task_id: int ) -> Dict[str, Any]:
     dependencies=[Depends(verify_token)],
 )
 async def get_motivation(task_id: int) -> Dict[str, Any]:
+    tasks = await get_all_tasks()
     motivation, subject_list = await asyncio.gather(
         get_motivation_by_subject(await find_task(task_id=task_id)),
         sort_tasks(tasks=tasks, subject=await find_task(task_id=task_id)['subject'])
@@ -199,6 +199,7 @@ async def get_motivation(task_id: int) -> Dict[str, Any]:
     dependencies=[Depends(verify_token)],
 )
 async def get_motivation(task_id: int) -> Dict[str, Any]:
+    tasks = await get_all_tasks()
     motivation = await get_motivation_by_subject(await find_task(task_id=task_id))
     subject_list = await sort_tasks(tasks=tasks, subject=await find_task(task_id=task_id)['subject'])
     return {'motivation': motivation, 'sorted_subject_list_by_priority': subject_list}
@@ -212,6 +213,7 @@ async def get_motivation(task_id: int) -> Dict[str, Any]:
     dependencies=[Depends(verify_token)],
 )
 async def get_motivation(task_id: int) -> Dict[str, Any]:
+    tasks = await get_all_tasks()
     motivation = asyncio.create_task(get_motivation_by_subject(await find_task(task_id=task_id)))
     subject_list = asyncio.create_task(sort_tasks(tasks=tasks, subject=await find_task(task_id=task_id)['subject']))
     return {'motivation': await motivation, 'sorted_subject_list_by_priority': await subject_list}
