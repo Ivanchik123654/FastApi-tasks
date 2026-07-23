@@ -1,7 +1,12 @@
 import os
+from typing import Annotated
+
 from dotenv import load_dotenv
 from pathlib import Path
-from fastapi import Header, HTTPException, status, Request
+from fastapi import Header, HTTPException, status, Request, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from HomeAPI.app.DB.database import get_session
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -29,3 +34,5 @@ def verify_token(request: Request, api_token: str | None = Header(default=None))
     else:
         if api_token != A_TOKEN:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Доступ запрещен")
+
+SessionDepends = Annotated[AsyncSession, Depends(get_session)]

@@ -1,5 +1,4 @@
 import asyncio
-from asyncio import gather
 from typing import List, Dict, Any
 
 from fastapi import APIRouter, HTTPException
@@ -8,9 +7,9 @@ from starlette import status
 
 from HomeAPI.app.schema import TaskRead, TaskCreate, TaskUpdate, DescUpdate, TitleUpdate, PriorityUpdate, SubjectUpdate, CategoryUpdate
 from HomeAPI.app.const import Category
-from HomeAPI.app.service import get_tasks_by_query, tasks, find_task, task_update_by_schema, patch_dump
+from HomeAPI.app.service import get_tasks_by_query, find_task, task_update_by_schema, patch_dump, get_all_tasks
 from HomeAPI.app.service import post_task, delete_task_from_json
-from HomeAPI.app.dependencies import verify_token
+from HomeAPI.app.dependencies import verify_token, SessionDepends
 from HomeAPI.app.external import get_hint, get_task_difficult, count_completed, count_high_priority, sort_tasks, get_motivation_by_subject
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
@@ -22,33 +21,22 @@ router = APIRouter(prefix="/tasks", tags=["tasks"])
             tags=['tasks'],
             dependencies=[Depends(verify_token)],
             )
-def get_tasks(
+async def get_tasks(
+        session: SessionDepends,
         done: bool | None = None,
         title: str | None = None,
         subject: str | None = None,
         limit: int | None = None,
         category: Category | None = None,
 ) -> List[Dict]:
-    return get_tasks_by_query(
+    return await get_tasks_by_query(
         done=done,
         title=title,
         subject=subject,
         limit=limit,
-        category=category
+        category=category,
+        session=session,
     )
-
-@router.get(
-            path="/count-by-subject",
-            status_code=status.HTTP_200_OK,
-            summary='Количество задач по предмету',
-            tags=['tasks'],
-            dependencies=[Depends(verify_token)],
-            )
-def get_number_tasks(subject: str) -> Dict[str, int]:
-    num_of_tasks = len([task for task in tasks if task["subject"] == subject])
-    if num_of_tasks > 0:
-        return {"number of tasks": num_of_tasks}
-    # raise HTTPException(status_code=404, detail='Subject not found')
 
 @router.get(
     path='/status',
@@ -57,24 +45,11 @@ def get_number_tasks(subject: str) -> Dict[str, int]:
     tags=['status'],
     dependencies=[Depends(verify_token)],
     )
-async def report() -> Dict[str, int]:
+async def report(session: SessionDepends) -> Dict[str, int]:
+    tasks = await get_all_tasks(session=session)
     completed = asyncio.create_task(count_completed(tasks=tasks))
     high_pr = asyncio.create_task(count_high_priority(tasks=tasks))
     return {'completed': await completed, 'high_priority': await high_pr}
-
-@router.get(
-            path="/by-subject/{subject}",
-            status_code=status.HTTP_200_OK,
-            summary='Задачи по предмету',
-            response_model=TaskRead,
-            tags=['tasks'],
-            dependencies=[Depends(verify_token)],
-            )
-def get_task_by_subject(subject: str) -> List[Dict]:
-    tasks_by_subject = [task for task in tasks if task["subject"] == subject]
-    if tasks_by_subject:
-        return tasks_by_subject
-    raise HTTPException(status_code=404, detail='Subject not found')
 
 
 @router.get(path="/{task_id}",
@@ -84,8 +59,8 @@ def get_task_by_subject(subject: str) -> List[Dict]:
             tags=['tasks'],
             dependencies=[Depends(verify_token)],
             )
-def get_task_by_id(task_id: int) -> Dict[str, Any]:
-    return find_task(task_id=task_id)
+async def get_task_by_id(session: SessionDepends,task_id: int) -> Dict[str, Any]:
+    return await find_task(task_id=task_id, session=session)
 
 
 @router.post(path="",
@@ -95,8 +70,8 @@ def get_task_by_id(task_id: int) -> Dict[str, Any]:
              tags=['tasks'],
              dependencies=[Depends(verify_token)],
              )
-def create_task(task: TaskCreate) -> Dict[str, Any]:
-    return post_task(task=task)
+async def create_task(session: SessionDepends, task: TaskCreate) -> Dict[str, Any]:
+    return await post_task(task=task.model_dump(), session=session)
 
 
 @router.patch(path="/{task_id}",
@@ -105,8 +80,8 @@ def create_task(task: TaskCreate) -> Dict[str, Any]:
               tags=['tasks'],
               dependencies=[Depends(verify_token)],
               )
-def update_task(task_id: int, task_update: TaskUpdate) -> None:
-    task_update_by_schema(task_id=task_id, task_update=task_update)
+async def update_task(session: SessionDepends,task_id: int, task_update: TaskUpdate) -> None:
+    await task_update_by_schema(task_id=task_id, task_update=task_update, session=session)
 
 
 @router.delete(
@@ -116,8 +91,8 @@ def update_task(task_id: int, task_update: TaskUpdate) -> None:
     tags=['tasks'],
     dependencies=[Depends(verify_token)],
 )
-def delete_task(task_id: int) -> None:
-    delete_task_from_json(task_id=task_id)
+async def delete_task(session: SessionDepends, task_id: int) -> None:
+    await delete_task_from_json(task_id=task_id, session=session)
 
 
 @router.patch(path="/{task_id}/done",
@@ -126,11 +101,10 @@ def delete_task(task_id: int) -> None:
               tags=['tasks'],
               dependencies=[Depends(verify_token)],
               )
-def update_done(task_id: int):
-    task = find_task(task_id=task_id)
+async def update_done(session: SessionDepends, task_id: int):
+    task = await find_task(task_id=task_id, session=session)
     task["done"] = not task["done"]
-    task.update()
-    patch_dump(task=task)
+    await patch_dump(task=task, session=session)
 
 @router.patch(path="/{task_id}/description",
               status_code=status.HTTP_204_NO_CONTENT,
@@ -138,8 +112,8 @@ def update_done(task_id: int):
               tags=['tasks'],
               dependencies=[Depends(verify_token)],
               )
-def update_desc(task_id: int, task_update: DescUpdate):
-    task_update_by_schema(task_id=task_id, task_update=task_update)
+async def update_desc(session: SessionDepends, task_id: int, task_update: DescUpdate):
+    await task_update_by_schema(task_id=task_id, task_update=task_update, session=session)
 
 
 @router.patch(path="/{task_id}/title",
@@ -148,8 +122,8 @@ def update_desc(task_id: int, task_update: DescUpdate):
               tags=['tasks'],
               dependencies=[Depends(verify_token)],
               )
-def update_title(task_id: int, task_update: TitleUpdate):
-    task_update_by_schema(task_id=task_id, task_update=task_update)
+async def update_title(session: SessionDepends, task_id: int, task_update: TitleUpdate):
+    await task_update_by_schema(task_id=task_id, task_update=task_update, session=session)
 
 
 @router.patch(path="/{task_id}/priority",
@@ -158,8 +132,8 @@ def update_title(task_id: int, task_update: TitleUpdate):
               tags=['tasks'],
               dependencies=[Depends(verify_token)],
               )
-def update_priority(task_id: int, task_update: PriorityUpdate):
-    task_update_by_schema(task_id=task_id, task_update=task_update)
+async def update_priority(session: SessionDepends, task_id: int, task_update: PriorityUpdate):
+    await task_update_by_schema(task_id=task_id, task_update=task_update, session=session)
 
 
 @router.patch(path="/{task_id}/subject",
@@ -168,8 +142,8 @@ def update_priority(task_id: int, task_update: PriorityUpdate):
               tags=['tasks'],
               dependencies=[Depends(verify_token)],
               )
-def update_subject(task_id: int, task_update: SubjectUpdate):
-    task_update_by_schema(task_id=task_id, task_update=task_update)
+async def update_subject(session: SessionDepends, task_id: int, task_update: SubjectUpdate):
+    await task_update_by_schema(task_id=task_id, task_update=task_update, session=session)
 
 
 @router.patch(path="/{task_id}/category",
@@ -178,8 +152,8 @@ def update_subject(task_id: int, task_update: SubjectUpdate):
               tags=['tasks'],
               dependencies=[Depends(verify_token)],
               )
-def update_category(task_id: int, task_update: CategoryUpdate):
-    task_update_by_schema(task_id=task_id, task_update=task_update)
+async def update_category(session: SessionDepends, task_id: int, task_update: CategoryUpdate):
+    await task_update_by_schema(task_id=task_id, task_update=task_update, session=session)
 
 @router.get(
     path='/{task_id}/hint',
@@ -188,8 +162,8 @@ def update_category(task_id: int, task_update: CategoryUpdate):
     tags=['tasks'],
     dependencies=[Depends(verify_token)],
 )
-async def get_task_hint(task_id: int ) -> Dict[str, Any]:
-    task = find_task(task_id)
+async def get_task_hint(session: SessionDepends, task_id: int ) -> Dict[str, Any]:
+    task = await find_task(task_id, session=session)
     hint, difficult = await asyncio.gather(
         get_hint(subject=task['subject']),
         get_task_difficult(priority=task['priority']),
@@ -209,10 +183,11 @@ async def get_task_hint(task_id: int ) -> Dict[str, Any]:
     tags=['tasks'],
     dependencies=[Depends(verify_token)],
 )
-async def get_motivation(task_id: int) -> Dict[str, Any]:
+async def get_motivation(session: SessionDepends, task_id: int) -> Dict[str, Any]:
+    tasks = await get_all_tasks(session=session)
     motivation, subject_list = await asyncio.gather(
-        get_motivation_by_subject(find_task(task_id=task_id)),
-        sort_tasks(tasks=tasks, subject=find_task(task_id=task_id)['subject'])
+        get_motivation_by_subject(await find_task(task_id=task_id, session=session)),
+        sort_tasks(tasks=tasks, subject=await find_task(task_id=task_id, session=session)['subject'])
     )
     return {'motivation': motivation, 'sorted_subject_list_by_priority': subject_list}
 
@@ -224,9 +199,10 @@ async def get_motivation(task_id: int) -> Dict[str, Any]:
     tags=['tasks'],
     dependencies=[Depends(verify_token)],
 )
-async def get_motivation(task_id: int) -> Dict[str, Any]:
-    motivation,  = await get_motivation_by_subject(find_task(task_id=task_id))
-    subject_list = await sort_tasks(tasks=tasks, subject=find_task(task_id=task_id)['subject'])
+async def get_motivation(session: SessionDepends, task_id: int) -> Dict[str, Any]:
+    tasks = await get_all_tasks(session=session)
+    motivation = await get_motivation_by_subject(await find_task(task_id=task_id, session=session))
+    subject_list = await sort_tasks(tasks=tasks, subject=await find_task(task_id=task_id, session=session)['subject'])
     return {'motivation': motivation, 'sorted_subject_list_by_priority': subject_list}
 
 
@@ -237,7 +213,8 @@ async def get_motivation(task_id: int) -> Dict[str, Any]:
     tags=['tasks'],
     dependencies=[Depends(verify_token)],
 )
-async def get_motivation(task_id: int) -> Dict[str, Any]:
-    motivation = asyncio.create_task(get_motivation_by_subject(find_task(task_id=task_id)))
-    subject_list = asyncio.create_task(sort_tasks(tasks=tasks)['subject'])
+async def get_motivation(session: SessionDepends, task_id: int) -> Dict[str, Any]:
+    tasks = await get_all_tasks(session=session)
+    motivation = asyncio.create_task(get_motivation_by_subject(await find_task(task_id=task_id), session=session))
+    subject_list = asyncio.create_task(sort_tasks(tasks=tasks, subject=await find_task(task_id=task_id, session=session)['subject']))
     return {'motivation': await motivation, 'sorted_subject_list_by_priority': await subject_list}

@@ -1,7 +1,6 @@
 import asyncio
 from typing import List, Dict, Any
 
-
 async def get_hint(subject: str) -> str:
     await asyncio.sleep(5)
     hints = {
