@@ -2,9 +2,15 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="70465cae-75e4-4157-af3f-62029a4b5cf6" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/HomeAPI/app/DB/database.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/HomeAPI/app/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/HomeAPI/app/dependencies.py" beforeDir="false" afterPath="$PROJECT_DIR$/HomeAPI/app/dependencies.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/HomeAPI/app/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/HomeAPI/app/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/HomeAPI/app/routers/tasks.py" beforeDir="false" afterPath="$PROJECT_DIR$/HomeAPI/app/routers/tasks.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/HomeAPI/app/service.py" beforeDir="false" afterPath="$PROJECT_DIR$/HomeAPI/app/service.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/HomeAPI/app/task_db.db" beforeDir="false" afterPath="$PROJECT_DIR$/HomeAPI/app/task_db.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/HomeAPI/app/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/HomeAPI/app/test.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

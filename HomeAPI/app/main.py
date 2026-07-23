@@ -1,11 +1,19 @@
+from contextlib import asynccontextmanager
 from typing import Dict
+
+import fastapi
 from fastapi import FastAPI, Depends
 
-from HomeAPI.app.dependencies import verify_token
+from HomeAPI.app.DB.database import create_tables
 from HomeAPI.app.routers.tasks import router as tasks_router
 
+@asynccontextmanager
+async def life_spen():
+    await create_tables()
+    yield
+
 app = FastAPI(
-    title='HomeAPI',
+    title='FastApi-tasks',
     version='0.0.5',
 )
 

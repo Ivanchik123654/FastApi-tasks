@@ -1,90 +1,66 @@
 from typing import Dict, Any, List
+from unicodedata import category
+
 from fastapi import HTTPException
 from pydantic import BaseModel
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, select, update, delete, func
+from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 from HomeAPI.app.const import Category
+from HomeAPI.app.dependencies import SessionDepends
+from HomeAPI.app.models import Task
 from HomeAPI.app.schema import TaskCreate
 from pathlib import Path
 import aiosqlite
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
-from sqlalchemy.orm import declarative_base
 
 DB_PATH = Path(__file__).parent / 'task_db.db'
 SQLALCHEMY_DB_URL = f"sqlite+aiosqlite:///{DB_PATH}"
 
-# Base = declarative_base()
-# # Создаем асинхронный движок
-# engine = create_async_engine(SQLALCHEMY_DB_URL)
-#
-# # Создаем фабрику асинхронных сессий
-# AsyncSessionLocal = async_sessionmaker(
-#     engine,
-#     expire_on_commit=False  # Важно для работы с FastAPI
-# )
-
-# class Task(Base):
-#     __tablename__ = 'tasks'
-#     id = Column(Integer, primary_key=True)
-#     title = Column(String)
-#     description = Column(String)
-#     done = Column(String)
-#     subject = Column(String)
-#     priority = Column(Integer)
-#     category = Column(String)
-
 def convert_to_dict(query: List) -> List[Dict[str, Any]]:
     result = []
     for tup in query:
+        done_value = tup.done.lower() == 'true'
         result.append({
-            'id': tup[0],
-            'title': tup[1],
-            'description': tup[2],
-            'done': bool(tup[3]),
-            'subject': tup[4],
-            'priority': tup[5],
-            'category': tup[6]
+            'id': tup.id,
+            'title': tup.title,
+            'description': tup.description,
+            'done': done_value,
+            'subject': tup.subject,
+            'priority': tup.priority,
+            'category': tup.category
         })
     return result
 
 
-async def find_task(task_id: int) -> Dict[str, Any]:
-    db = await aiosqlite.connect(DB_PATH)
-    cursor = await db.cursor()
-    await cursor.execute(f"""SELECT * FROM tasks WHERE id = {task_id};""")
-    result = convert_to_dict(await cursor.fetchall())
-    await db.commit()
-    await db.close()
-    # session = AsyncSessionLocal()
-    # result = get_all_tasks(session.query(Task).filter_by(id=task_id).all())
+async def find_task(session: SessionDepends, task_id: int) -> Dict[str, Any]:
+    result = convert_to_dict((await session.scalars(select(Task).where(Task.id == task_id))).all())
+    await session.commit()
     if result != []:
         return result[0]
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail='Не найдена задача')
 
-async def patch_dump(task: Dict) -> None:
-    db = await aiosqlite.connect(DB_PATH)
-    cursor = await db.cursor()
-    await cursor.execute(f"""UPDATE tasks 
-    SET id = {task['id']},
-    title = '{task['title']}',
-    description = '{task['description']}',
-    done = '{task['done']}',
-    subject = '{task['subject']}',
-    priority = {task['priority']},
-    category = '{task['category']}'
-    WHERE id = {task['id']};""")
-    await db.commit()
-    await db.close()
+async def patch_dump(session: SessionDepends, task: Dict) -> None:
+    print(task)
+    await session.execute(update(Task).where(Task.id == task['id']).values(
+        title=task['title'],
+        description=task['description'],
+        done=str(task['done']),
+        subject=task['subject'],
+        priority=task['priority'],
+        category=task['category'],
+    ))
+    await session.commit()
 
 
 async def get_tasks_by_query(
+        session: SessionDepends,
         done: bool | None = None,
         title: str | None = None,
         subject: str | None = None,
         limit: int | None = None,
         category: Category | None = None,
 ) -> List[Dict]:
-    new_tasks = await get_all_tasks()
+    new_tasks = await get_all_tasks(session=session)
     if done != None:
         # return list(filter(lambda x: x["done"]==done, tasks))
         new_tasks = [task for task in new_tasks if task["done"] == done]
@@ -97,8 +73,8 @@ async def get_tasks_by_query(
     return new_tasks[:limit]
 
 
-async def task_update_by_schema(task_id: int, task_update: BaseModel) -> None:
-    task = await find_task(task_id=task_id)
+async def task_update_by_schema(session: SessionDepends, task_id: int, task_update: BaseModel) -> None:
+    task = await find_task(task_id=task_id, session=session)
     update_data = task_update.model_dump(exclude_unset=True)
     if not update_data:
         raise HTTPException(
@@ -106,42 +82,30 @@ async def task_update_by_schema(task_id: int, task_update: BaseModel) -> None:
             detail='Нет данных для обновления',
         )
     task.update(update_data)
-    await patch_dump(task=task)
+    await patch_dump(task=task, session=session)
 
 
-async def post_task(task: TaskCreate) -> Dict[str, Any]:
-    db = await aiosqlite.connect(DB_PATH)
-    cursor = await db.cursor()
-    await cursor.execute("SELECT MAX(id) FROM tasks;")
-    id = (await cursor.fetchone())[0] + 1
-    new_task = {"id": id, **task.model_dump()}
-    await cursor.execute(f"""INSERT INTO tasks
-    VALUES({new_task['id']},
-    '{new_task['title']}',
-    '{new_task['description']}',
-    '{new_task['done']}',
-    '{new_task['subject']}',
-     {new_task['priority']},
-    '{new_task['category']}');""")
-    await db.commit()
-    await db.close()
-    return new_task
+async def post_task(session: SessionDepends, task: TaskCreate) -> Dict[str, Any]:
+    new_task = Task(id=(await session.execute(select(func.max(Task.id)))).scalar() + 1, **task)
+    session.add(new_task)
+    await session.commit()
+    await session.refresh(new_task)
+    return {
+        'id': new_task.id,
+        'title': new_task.title,
+        'description': new_task.description,
+        'done': new_task.done,
+        'subject': new_task.subject,
+        'priority': new_task.priority,
+        'category': new_task.category,
+    }
 
-
-async def delete_task_from_json(task_id: int) -> None:
-    task = await find_task(task_id=task_id)
-    db = await aiosqlite.connect(DB_PATH)
-    cursor = await db.cursor()
-    await cursor.execute(f"DELETE FROM tasks WHERE id = {task['id']};")
-    await db.commit()
-    await db.close()
-
-async def get_all_tasks():
-    db = await aiosqlite.connect(DB_PATH)
-    cursor = await db.cursor()
-    await cursor.execute("SELECT * FROM tasks;")
-    result = convert_to_dict(await cursor.fetchall())
-    print(result)
-    await db.commit()
-    await db.close()
+async def delete_task_from_json(session: SessionDepends, task_id: int) -> None:
+    task = await session.get(Task, task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    await session.delete(task)
+    await session.commit()
+async def get_all_tasks(session: SessionDepends,):
+    result = convert_to_dict((await session.scalars(select(Task))).all())
     return result
