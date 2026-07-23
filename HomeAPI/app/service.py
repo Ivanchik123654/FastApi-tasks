@@ -3,18 +3,14 @@ from unicodedata import category
 
 from fastapi import HTTPException
 from pydantic import BaseModel
-from sqlalchemy import Column, Integer, String, select, update, delete, func
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, update, func
 from starlette import status
 from HomeAPI.app.const import Category
 from HomeAPI.app.dependencies import SessionDepends
 from HomeAPI.app.models import Task
 from HomeAPI.app.schema import TaskCreate
 from pathlib import Path
-import aiosqlite
 
-DB_PATH = Path(__file__).parent / 'task_db.db'
-SQLALCHEMY_DB_URL = f"sqlite+aiosqlite:///{DB_PATH}"
 
 def convert_to_dict(query: List) -> List[Dict[str, Any]]:
     result = []

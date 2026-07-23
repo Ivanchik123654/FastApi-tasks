@@ -1,11 +1,13 @@
 from contextlib import asynccontextmanager
 from typing import Dict
-
-import fastapi
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 
 from HomeAPI.app.DB.database import create_tables
 from HomeAPI.app.routers.tasks import router as tasks_router
+from pathlib import Path
+from fastapi.responses import HTMLResponse
+
+BASE_DIR = Path(__file__).resolve().parent
 
 @asynccontextmanager
 async def life_spen():
@@ -16,11 +18,6 @@ app = FastAPI(
     title='FastApi-tasks',
     version='0.0.5',
 )
-
-@app.get(path="/", summary='Главная страница')
-def read_root() -> Dict[str, str]:
-    return {'message': 'Hello'}
-
 
 @app.get(path='/health', summary='Проверить подключение')
 def health_check() -> Dict[str, str]:
@@ -45,5 +42,13 @@ def get_student(name, age, target) -> Dict[str, str]:
         'age': age,
         'target': target,
     }
+
+@app.get(
+    path='/ui',
+    response_class=HTMLResponse,
+    tags=['frontend'],
+)
+def show_front() -> str:
+    return (BASE_DIR/'static'/'index.html').read_text(encoding='utf-8')
 
 app.include_router(router=tasks_router)

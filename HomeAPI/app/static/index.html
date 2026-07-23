@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>FastApi-tasks</title>
+    <style>
+        body {
+        font-family: Arial, sans-serif;
+        max-width: 1000px;
+        margin: 30px auto;
+        background: #f5f7fb;
+        color: #222;
+        }
+        .card {
+        background: white;
+        border-radius: 14px;
+        padding: 18px;
+        margin-bottom: 16px;
+        box-shadow: 0 4px 14px rgba(0,0,0, 0.08);
+        }
+        input, select, button, textarea {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 10px;
+        margin: 5px 0;
+        }
+        button {
+        cursor: pointer;
+        border: None;
+        background: #246bfe;
+        color: white;
+        }
+    </style>
+</head>
+<body>
+<h1>FastApi-tasks</h1>
+<p>mini front for study project</p>
+<div class="card">
+    <h2>Введите токен</h2>
+    <input id="token" placeholder="api-token" size="40" />
+    <p>GET=Admin,Student POST=Admin,Teacher Patch=Admin DELETE=Admin,Teacher</p>
+</div>
+<div class="card">
+    <h2>Создать задачу</h2>
+    <input id="title" placeholder="Название задачи" />
+    <input id="subject" placeholder="Назвагие предмета" />
+    <input id="priority" type="number" min="1" max="5" value="3" />
+    <select id="category">
+        <option value="school">school</option>
+        <option value="home">home</option>
+    </select>
+    <br />
+    <textarea id="description" placeholder="Описание задачи"></textarea>
+    <br />
+    <button onclick="taskcreate()">Создать</button>
+</div>
+<div class="card">
+    <h2>Задача</h2>
+    <button onclick="TaskRead()">Получить задачи</button>
+</div>
+<script>
+    const tokenInput = document.querySelector("#token");
+    const message = document.querySelector("#message");
+    const tasksBlock = document.querySelector("#tasks");
+    async function api(path, options = {}) {
+
+      const headers = options.headers || {};
+      headers["api-token"] = tokenInput.value;
+      if (options.body) {
+        headers["Content-Type"] = "application/json";
+      }
+      const response = await fetch(path, {
+        ...options,
+        headers: headers,
+      });
+      const text = await response.text();
+      if (!response.ok) {
+        throw new Error(${response.status}: ${text});
+      }
+      if (!text) {
+        return null;
+      }
+      return JSON.parse(text);
+    }
+    async function taskcreate(){
+        try{
+            const task {
+            title: document.querySelecter('#title').value()
+            description: document.querySelecter('#description').value()
+            subject: document.querySelecter('#subject').value()
+            priority: Number(document.querySelecter('#priority').value())
+            category: document.querySelecter('#category').value()
+            };
+        await api('/tasks', {method: 'POST', body: JSON.stringify(task)});
+        } catch (err) {
+        console.error(err);
+        alert(err.message):
+        }
+    }
+</script>
+</body>
+</html>
